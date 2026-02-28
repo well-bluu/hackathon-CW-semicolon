@@ -81,7 +81,14 @@ function CardDeck({ initialCards }) {
     return (
       <div className="deck-container">
         <h2>🎉 All cards mastered!</h2>
-        <button onClick={() => window.location.reload()}>Start Over</button>
+        <button
+          onClick={() => {
+            localStorage.removeItem("flashcards");
+            window.location.reload();
+          }}
+        >
+          Start Over
+        </button>
       </div>
     );
   }
@@ -97,7 +104,8 @@ function CardDeck({ initialCards }) {
             className="progress-fill"
             style={{
               width: `${(answeredCount / cards.length) * 100}%`,
-            }}></div>
+            }}
+          ></div>
         </div>
       </div>
 
