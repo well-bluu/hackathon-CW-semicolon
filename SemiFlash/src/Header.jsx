@@ -1,8 +1,11 @@
-// simple header component
-export default function Header() {
+import "./Header.css";
+
+function Header() {
   return (
-    <header style={{ padding: '1rem', background: '#eee' }}>
-      <h1>SemiFlash</h1>
+    <header>
+      <h1>Semiflash</h1>
     </header>
   );
 }
+
+export default Header;
