@@ -149,41 +149,93 @@ function AIDemo({ onGenerate, onBack }) {
   return (
     <div className="ai-demo">
       <div className="ai-container">
-        <h2>AI Assistant</h2>
-        <p className="ai-sub">
-          Paste text or an extracted PDF transcript and let the AI generate
-          flashcards.
-        </p>
+        <div className="ai-header">
+          <div className="ai-header-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+              <path
+                d="M12 2l2.09 6.26L20.18 10l-6.09 1.74L12 18l-2.09-6.26L3.82 10l6.09-1.74L12 2z"
+                fill="currentColor"
+                opacity=".85"
+              />
+              <path
+                d="M19 15l1.04 3.13L23.18 19l-3.14.87L19 23l-1.04-3.13L14.82 19l3.14-.87L19 15z"
+                fill="currentColor"
+                opacity=".5"
+              />
+            </svg>
+          </div>
+          <div>
+            <h2>AI Assistant</h2>
+            <p className="ai-sub">
+              Paste your study material and let AI generate flashcards for you.
+            </p>
+          </div>
+        </div>
 
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste text here..."
-          rows={10}
-          style={{ width: "100%", padding: 12, borderRadius: 8 }}
-        />
+        <div className="ai-input-section">
+          <label className="ai-input-label" htmlFor="ai-input">
+            Your content
+          </label>
+          <textarea
+            id="ai-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Paste your notes, textbook content, or any study material here..."
+            rows={8}
+            className="ai-textarea"
+          />
+          <div className="ai-input-hint">
+            {input.length > 0
+              ? `${input.trim().split(/\s+/).length} words`
+              : "Tip: The more context you give, the better the flashcards."}
+          </div>
+        </div>
 
-        <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+        <div className="ai-actions">
           <button
             onClick={handleGenerate}
-            disabled={loading}
+            disabled={loading || !input.trim()}
             className="ai-gen-btn">
-            {loading ? "Generating..." : "Generate Cards"}
+            {loading ? (
+              <>
+                <span className="ai-spinner" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+                  <path
+                    d="M12 2l2.09 6.26L20.18 10l-6.09 1.74L12 18l-2.09-6.26L3.82 10l6.09-1.74L12 2z"
+                    fill="currentColor"
+                  />
+                </svg>
+                Generate Cards
+              </>
+            )}
           </button>
-          <button onClick={onBack} className="ai-cancel-btn">
+          <button onClick={onBack} className="ai-back-btn">
             Back
           </button>
         </div>
 
-        {progress && (
-          <div style={{ marginTop: 12 }}>
-            <strong>Progress:</strong>
-            <pre style={{ whiteSpace: "pre-wrap" }}>{progress}</pre>
+        {loading && progress && (
+          <div className="ai-progress">
+            <div className="ai-progress-label">AI is thinking...</div>
+            <pre className="ai-progress-text">{progress}</pre>
           </div>
         )}
 
         {error && (
-          <div style={{ marginTop: 12, color: "#c62828" }}>{error}</div>
+          <div className="ai-error">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
         )}
       </div>
     </div>

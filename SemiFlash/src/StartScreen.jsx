@@ -64,7 +64,22 @@ function StartScreen({ onSelectMethod, onAIClick, onLoadAiFile }) {
         </div>
 
         <button className="ai-button" onClick={() => onAIClick && onAIClick()}>
-          Let AI do your work
+          <span className="ai-button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+              <path
+                d="M12 2l2.09 6.26L20.18 10l-6.09 1.74L12 18l-2.09-6.26L3.82 10l6.09-1.74L12 2z"
+                fill="currentColor"
+                opacity=".85"
+              />
+              <path
+                d="M19 15l1.04 3.13L23.18 19l-3.14.87L19 23l-1.04-3.13L14.82 19l3.14-.87L19 15z"
+                fill="currentColor"
+                opacity=".55"
+              />
+            </svg>
+          </span>
+          <span className="ai-button-label">Let AI do your work</span>
+          <span className="ai-button-badge">NEW</span>
         </button>
       </div>
     </div>

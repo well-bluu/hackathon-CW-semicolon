@@ -15,6 +15,7 @@ function App() {
   const [currentDeckName, setCurrentDeckName] = useState("");
   const [pendingCards, setPendingCards] = useState(null);
   const [pendingSuggestedName, setPendingSuggestedName] = useState("");
+  const [quizResults, setQuizResults] = useState(null);
 
   const handleSelectMethod = (method) => {
     setQuizResults(null);
@@ -176,8 +177,60 @@ function App() {
           <CardDeck
             initialCards={cards}
             deckName={currentDeckName}
-            onRestart={handleRestart}
+            onComplete={handleQuizComplete}
           />
+        )}
+        {view === "results" && quizResults && (
+          <div className="results-screen">
+            <h2>Quiz Complete!</h2>
+            <p>
+              You got <strong>{quizResults.correctAnswers}</strong> out of{" "}
+              <strong>{quizResults.totalQuestions}</strong> correct
+            </p>
+            {quizResults.incorrectAnswers.length > 0 && (
+              <div className="incorrect-list">
+                <h3>Review Incorrect Answers:</h3>
+                {quizResults.incorrectAnswers.map((a, i) => (
+                  <div key={i} className="incorrect-item">
+                    <p>
+                      <strong>Q{a.questionNumber}:</strong> {a.question}
+                    </p>
+                    <p>
+                      Your answer:{" "}
+                      <span style={{ color: "#c62828" }}>
+                        {a.selectedAnswer}
+                      </span>
+                    </p>
+                    <p>
+                      Correct answer:{" "}
+                      <span style={{ color: "#2e7d32" }}>
+                        {a.correctAnswer}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div
+              style={{
+                marginTop: 16,
+                display: "flex",
+                gap: 12,
+                justifyContent: "center",
+              }}>
+              <button
+                className="next-btn"
+                onClick={() => {
+                  setQuizResults(null);
+                  setView("quiz");
+                }}>
+                Try Again
+              </button>
+              <button className="next-btn" onClick={handleRestart}>
+                Back to Home
+              </button>
+            </div>
+          </div>
         )}
       </main>
 
