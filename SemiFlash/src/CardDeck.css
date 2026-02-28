@@ -6,6 +6,10 @@
   gap: 30px;
   padding: 40px 20px;
   min-height: 80vh;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  background-color: #fff9fb;
 }
 
 .progress-section {
