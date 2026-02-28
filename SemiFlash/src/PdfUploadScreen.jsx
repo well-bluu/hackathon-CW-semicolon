@@ -55,7 +55,29 @@ function PdfUploadScreen() {
           <div
             className="upload-area"
             onClick={() => fileInputRef.current?.click()}>
-            <div className="upload-icon">📄</div>
+            <div className="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 3.75v4.5a1.5 1.5 0 0 0 1.5 1.5H20"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M12 12.25v5m0 0-2-2m2 2 2-2"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M14 3.75H8A3.25 3.25 0 0 0 4.75 7v10A3.25 3.25 0 0 0 8 20.25h8A3.25 3.25 0 0 0 19.25 17V9L14 3.75Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
             <p className="upload-text">Click to select a PDF file</p>
             <p className="upload-hint">or drag and drop</p>
           </div>
