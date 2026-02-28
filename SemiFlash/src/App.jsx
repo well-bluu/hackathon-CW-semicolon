@@ -13,6 +13,7 @@ import "./App.css";
 function App() {
   const [cards, setCards] = useState([]);
   const [view, setView] = useState("start");
+  const [currentDeckId, setCurrentDeckId] = useState("");
   const [currentDeckName, setCurrentDeckName] = useState("");
   const [pendingCards, setPendingCards] = useState(null);
   const [pendingSuggestedName, setPendingSuggestedName] = useState("");
@@ -90,6 +91,14 @@ function App() {
         name: deckName,
         cards: pendingCards,
         createdAt: new Date().toISOString(),
+        stats: {
+          sessions: 0,
+          totalAnswered: 0,
+          correctAnswers: 0,
+          mistakes: 0,
+          totalTimeSeconds: 0,
+          lastPracticedAt: null,
+        },
       };
       decks.push(newDeck);
       localStorage.setItem("allDecks", JSON.stringify(decks));
@@ -117,6 +126,7 @@ function App() {
       .catch((err) => console.warn("Could not write cards file:", err));
 
     setCards(pendingCards);
+    setCurrentDeckId(deckId);
     setCurrentDeckName(deckName);
     setPendingCards(null);
     setPendingSuggestedName("");
@@ -130,6 +140,7 @@ function App() {
   };
 
   const handleSelectDeck = (deck) => {
+    setCurrentDeckId(deck.id);
     setCurrentDeckName(deck.name);
     setCards(deck.cards);
     setQuizResults(null);
@@ -151,6 +162,51 @@ function App() {
   };
 
   const handleQuizComplete = (results) => {
+    if (currentDeckId) {
+      try {
+        const allDecks = localStorage.getItem("allDecks");
+        const decks = allDecks ? JSON.parse(allDecks) : [];
+        const updatedDecks = decks.map((deck) => {
+          if (deck.id !== currentDeckId) return deck;
+
+          const attempts = Array.isArray(results.attempts) ? results.attempts : [];
+          const totalAnswered = attempts.length;
+          const correctAnswers = attempts.filter((a) => a.isCorrect).length;
+          const mistakes = totalAnswered - correctAnswers;
+          const totalTimeSeconds = attempts.reduce(
+            (sum, attempt) => sum + (attempt.timeSeconds || 0),
+            0,
+          );
+
+          const existingStats = deck.stats || {
+            sessions: 0,
+            totalAnswered: 0,
+            correctAnswers: 0,
+            mistakes: 0,
+            totalTimeSeconds: 0,
+            lastPracticedAt: null,
+          };
+
+          return {
+            ...deck,
+            stats: {
+              sessions: (existingStats.sessions || 0) + 1,
+              totalAnswered: (existingStats.totalAnswered || 0) + totalAnswered,
+              correctAnswers:
+                (existingStats.correctAnswers || 0) + correctAnswers,
+              mistakes: (existingStats.mistakes || 0) + mistakes,
+              totalTimeSeconds:
+                (existingStats.totalTimeSeconds || 0) + totalTimeSeconds,
+              lastPracticedAt: new Date().toISOString(),
+            },
+          };
+        });
+        localStorage.setItem("allDecks", JSON.stringify(updatedDecks));
+      } catch (e) {
+        console.warn("failed to persist deck stats", e);
+      }
+    }
+
     setQuizResults(results);
     setView("results");
   };

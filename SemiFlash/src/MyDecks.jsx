@@ -57,22 +57,43 @@ function MyDecks({ onSelectDeck }) {
         ) : (
           <div className="decks-grid">
             {decks.map((deck) => (
-              <div
-                key={deck.id}
-                className="deck-card"
-                onClick={() => handleDeckClick(deck)}>
-                <div className="deck-header">
-                  <h3>{deck.name}</h3>
-                  <button
-                    className="delete-btn"
-                    onClick={(e) => handleDeleteDeck(deck.id, e)}>
-                    ✕
-                  </button>
+              <div key={deck.id} className="deck-card" onClick={() => handleDeckClick(deck)}>
+                <div className="deck-main">
+                  <div className="deck-header">
+                    <h3>{deck.name}</h3>
+                  </div>
+                  <p className="deck-count">{deck.cards.length} cards</p>
+                  <p className="deck-date">
+                    Created {new Date(deck.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="deck-count">{deck.cards.length} cards</p>
-                <p className="deck-date">
-                  {new Date(deck.createdAt).toLocaleDateString()}
-                </p>
+
+                {(() => {
+                  const stats = deck.stats || null;
+                  const totalAnswered = stats?.totalAnswered || 0;
+                  const correctAnswers = stats?.correctAnswers || 0;
+                  const totalTimeSeconds = stats?.totalTimeSeconds || 0;
+                  const accuracy = totalAnswered
+                    ? Math.round((correctAnswers / totalAnswered) * 100)
+                    : 0;
+                  const avgTime = totalAnswered
+                    ? (totalTimeSeconds / totalAnswered).toFixed(1)
+                    : "0.0";
+
+                  return (
+                    <div className="deck-stats">
+                      <p className="stats-title">Stats</p>
+                      <p className="stats-item">Accuracy: {accuracy}%</p>
+                      <p className="stats-item">Avg Time: {avgTime}s</p>
+                    </div>
+                  );
+                })()}
+
+                <button
+                  className="delete-btn"
+                  onClick={(e) => handleDeleteDeck(deck.id, e)}>
+                  ✕
+                </button>
               </div>
             ))}
           </div>
