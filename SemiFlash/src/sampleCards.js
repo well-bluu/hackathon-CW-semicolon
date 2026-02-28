@@ -1,4 +1,8 @@
 // Sample flashcard data - Multiple Choice format (3 options)
+// This file isn't used by the app by default, but illustrates the
+// structure that the parser produces and could be imported for testing
+// or as a starting point.
+
 export const sampleCards = [
   {
     id: 1,
