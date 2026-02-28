@@ -106,7 +106,3 @@ bashmkdir backend && cd backend
 npm init -y
 npm install express mongoose dotenv bcryptjs jsonwebtoken cors
 npm install --save-dev nodemon
-
-Coordinate With Your Team
-RoleNeeds From YouFrontendAPI base URL, endpoint docs, response formatUI/DesignNo direct dependencyYour jobReturn clean JSON, handle errors properly, document your routes
-Your most critical deliverable is the session + performance analytics endpoints — that's the core logic that powers the weak/strong area detection and the dashboard.
