@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "./Header";
 import CardDeck from "./CardDeck";
 import InputScreen from "./InputScreen";
@@ -18,6 +18,50 @@ function App() {
   const [pendingSuggestedName, setPendingSuggestedName] = useState("");
   const [quizResults, setQuizResults] = useState(null);
 
+  // On startup, sync file-based decks from src/data/ into localStorage
+  useEffect(() => {
+    async function syncFileDecks() {
+      try {
+        const resp = await fetch("/api/list-decks", { cache: "no-store" });
+        if (!resp.ok) return;
+        const fileDecks = await resp.json();
+        if (!Array.isArray(fileDecks) || fileDecks.length === 0) return;
+
+        let localDecks = [];
+        try {
+          const raw = localStorage.getItem("allDecks");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) localDecks = parsed;
+          }
+        } catch {
+          /* empty */
+        }
+
+        const localNames = new Set(localDecks.map((d) => d.name.toLowerCase()));
+        let added = 0;
+        for (const fd of fileDecks) {
+          if (!localNames.has(fd.name.toLowerCase())) {
+            localDecks.push({
+              id: fd.id,
+              name: fd.name,
+              cards: fd.cards,
+              createdAt: fd.createdAt,
+              source: "file",
+            });
+            added++;
+          }
+        }
+        if (added > 0) {
+          localStorage.setItem("allDecks", JSON.stringify(localDecks));
+        }
+      } catch (e) {
+        console.warn("Could not sync file decks on startup:", e);
+      }
+    }
+    syncFileDecks();
+  }, []);
+
   const handleSelectMethod = (method) => {
     setQuizResults(null);
     setView(method);
@@ -34,7 +78,7 @@ function App() {
       const text = await resp.text();
       // accept either `export const cards = [...]` or `export const sampleCards = [...]`
       const m = text.match(
-        /export\s+const\s+(cards|sampleCards)\s*=\s*([\s\S]*?);?\s*$/m,
+        /export\s+const\s+(cards|sampleCards)\s*=\s*([\s\S]*?);?\s*$/,
       );
       if (!m) {
         alert(

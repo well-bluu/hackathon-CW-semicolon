@@ -3,11 +3,74 @@ import react from "@vitejs/plugin-react";
 import fs from "fs";
 import path from "path";
 
-// Plugin: expose a POST endpoint so the browser can write generated card files
+// Plugin: expose API endpoints for reading/writing card files in src/data/
 function writeCardsPlugin() {
   return {
     name: "write-cards",
     configureServer(server) {
+      // GET /api/list-decks – scan src/data/*.js and return deck objects
+      server.middlewares.use("/api/list-decks", (req, res) => {
+        if (req.method !== "GET") {
+          res.statusCode = 405;
+          res.end("Method not allowed");
+          return;
+        }
+        try {
+          const targetDir = path.resolve(process.cwd(), "src", "data");
+          if (!fs.existsSync(targetDir)) {
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify([]));
+            return;
+          }
+          const files = fs
+            .readdirSync(targetDir)
+            .filter((f) => f.endsWith(".js"));
+          const decks = [];
+          for (const file of files) {
+            try {
+              const filePath = path.join(targetDir, file);
+              const text = fs.readFileSync(filePath, "utf8");
+              // Extract the exported array from patterns like:
+              //   export const sampleCards = [...]
+              //   export const cards = [...]
+              const m = text.match(
+                /export\s+const\s+(?:cards|sampleCards)\s*=\s*([\s\S]*?);?\s*$/,
+              );
+              if (!m) continue;
+              let cards;
+              try {
+                cards = JSON.parse(m[1]);
+              } catch {
+                // fallback: evaluate as JS expression
+                cards = new Function(`return (${m[1]})`)();
+              }
+              if (!Array.isArray(cards) || cards.length === 0) continue;
+              // Derive a human-readable name from the filename
+              const baseName = file.replace(/\.js$/, "");
+              const prettyName = baseName
+                .replace(/[_-]/g, " ")
+                .replace(/\b\w/g, (c) => c.toUpperCase());
+              decks.push({
+                id: `file_${baseName}`,
+                name: prettyName,
+                cards,
+                source: "file",
+                fileName: file,
+                createdAt: fs.statSync(filePath).mtime.toISOString(),
+              });
+            } catch (e) {
+              console.warn(`Skipping ${file}:`, e.message);
+            }
+          }
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify(decks));
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+
+      // POST /api/write-cards – write card file to src/data/
       server.middlewares.use("/api/write-cards", (req, res) => {
         if (req.method !== "POST") {
           res.statusCode = 405;

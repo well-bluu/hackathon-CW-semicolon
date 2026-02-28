@@ -1,31 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./MyDecks.css";
 
 function MyDecks({ onSelectDeck }) {
-  const [decks, setDecks] = useState(() => {
-    try {
-      const allDecks = localStorage.getItem("allDecks");
-      if (allDecks) {
-        const parsed = JSON.parse(allDecks);
-        if (Array.isArray(parsed)) {
-          return parsed;
+  const [decks, setDecks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load decks from both localStorage AND the data folder, then merge
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDecks() {
+      // 1. Get localStorage decks
+      let localDecks = [];
+      try {
+        const allDecks = localStorage.getItem("allDecks");
+        if (allDecks) {
+          const parsed = JSON.parse(allDecks);
+          if (Array.isArray(parsed)) localDecks = parsed;
+        }
+      } catch (e) {
+        console.warn("failed to load decks from localStorage", e);
+      }
+
+      // 2. Get file-based decks from src/data/
+      let fileDecks = [];
+      try {
+        const resp = await fetch("/api/list-decks", { cache: "no-store" });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (Array.isArray(data)) fileDecks = data;
+        }
+      } catch (e) {
+        console.warn("failed to load decks from data folder", e);
+      }
+
+      if (cancelled) return;
+
+      // 3. Merge: include all localStorage decks, then add any file decks
+      //    that don't already exist in localStorage (by matching name or fileName)
+      const localNames = new Set(localDecks.map((d) => d.name.toLowerCase()));
+      const merged = [...localDecks];
+      for (const fd of fileDecks) {
+        if (!localNames.has(fd.name.toLowerCase())) {
+          merged.push(fd);
         }
       }
-    } catch (e) {
-      console.warn("failed to load decks", e);
+
+      setDecks(merged);
+      setLoading(false);
     }
-    return [];
-  });
+
+    loadDecks();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleDeckClick = (deck) => {
     onSelectDeck(deck);
   };
 
-  const handleDeleteDeck = (id, e) => {
+  const handleDeleteDeck = (deck, e) => {
     e.stopPropagation();
-    const updatedDecks = decks.filter((deck) => deck.id !== id);
+    const updatedDecks = decks.filter((d) => d.id !== deck.id);
     setDecks(updatedDecks);
-    localStorage.setItem("allDecks", JSON.stringify(updatedDecks));
+    // Only update localStorage for non-file decks
+    const localOnly = updatedDecks.filter((d) => d.source !== "file");
+    localStorage.setItem("allDecks", JSON.stringify(localOnly));
   };
 
   return (
@@ -33,7 +74,11 @@ function MyDecks({ onSelectDeck }) {
       <div className="decks-container">
         <h2>My Decks</h2>
 
-        {decks.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <p className="empty-text">Loading decks…</p>
+          </div>
+        ) : decks.length === 0 ? (
           <div className="empty-state">
             <p className="empty-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none">
@@ -65,7 +110,7 @@ function MyDecks({ onSelectDeck }) {
                   <h3>{deck.name}</h3>
                   <button
                     className="delete-btn"
-                    onClick={(e) => handleDeleteDeck(deck.id, e)}>
+                    onClick={(e) => handleDeleteDeck(deck, e)}>
                     ✕
                   </button>
                 </div>
