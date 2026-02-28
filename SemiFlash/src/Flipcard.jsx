@@ -7,19 +7,16 @@ function FlipCard({ card, onNext }) {
   const [isCorrect, setIsCorrect] = useState(null);
   const [time, setTime] = useState(0);
 
-  // Timer effect
+  // Timer effect - stops when answer is submitted
   useEffect(() => {
+    if (answered) return; // Stop timer when answered
+
     const timer = setInterval(() => {
       setTime((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  // Reset state when card changes
-  useEffect(() => {
-    setTime(0);
-  }, [card.id]);
+  }, [answered]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -40,7 +37,7 @@ function FlipCard({ card, onNext }) {
 
   const handleNextQuestion = () => {
     if (onNext) {
-      onNext(card.id, isCorrect);
+      onNext();
     }
   };
 
@@ -71,6 +68,7 @@ function FlipCard({ card, onNext }) {
           {isCorrect ? (
             <>
               <p>✓ Correct!</p>
+              <p className="time-taken">Time: {formatTime(time)}</p>
               <button className="next-btn" onClick={handleNextQuestion}>
                 Next Question →
               </button>
@@ -78,6 +76,7 @@ function FlipCard({ card, onNext }) {
           ) : (
             <>
               <p>✗ Wrong! The answer is: {card.answer}</p>
+              <p className="time-taken">Time: {formatTime(time)}</p>
               <button className="next-btn" onClick={handleNextQuestion}>
                 Next Question →
               </button>
