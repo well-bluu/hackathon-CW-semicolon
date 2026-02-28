@@ -2,18 +2,23 @@ import { useState } from "react";
 import FlipCard from "./Flipcard";
 import "./CardDeck.css";
 
-function CardDeck({ initialCards, deckName }) {
+function CardDeck({ initialCards, deckName, onRestart }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
 
+  const isFinished = answeredCount >= initialCards.length;
+
   const handleNext = () => {
-    // Increment answered count
     setAnsweredCount((prev) => prev + 1);
-    // Move to next card
     setCurrentCardIndex((prev) => prev + 1);
   };
 
-  const currentCard = initialCards[currentCardIndex % initialCards.length];
+  const handleRetry = () => {
+    setCurrentCardIndex(0);
+    setAnsweredCount(0);
+  };
+
+  const currentCard = !isFinished ? initialCards[currentCardIndex] : null;
 
   return (
     <div className="deck-container">
@@ -21,18 +26,42 @@ function CardDeck({ initialCards, deckName }) {
 
       <div className="progress-section">
         <div className="progress-label">
-          {answeredCount} / {initialCards.length} completed
+          {Math.min(answeredCount, initialCards.length)} / {initialCards.length}{" "}
+          completed
         </div>
         <div className="progress-bar">
           <div
             className="progress-fill"
             style={{
-              width: `${(answeredCount / initialCards.length) * 100}%`,
+              width: `${Math.min((answeredCount / initialCards.length) * 100, 100)}%`,
             }}></div>
         </div>
       </div>
 
-      <FlipCard key={currentCard.id} card={currentCard} onNext={handleNext} />
+      {isFinished ? (
+        <div className="completion-screen">
+          <h2>Deck Complete!</h2>
+          <p>You answered all {initialCards.length} cards.</p>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
+              marginTop: 16,
+            }}>
+            <button className="next-btn" onClick={handleRetry}>
+              Try Again
+            </button>
+            {onRestart && (
+              <button className="next-btn" onClick={onRestart}>
+                Back to Home
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <FlipCard key={currentCard.id} card={currentCard} onNext={handleNext} />
+      )}
     </div>
   );
 }

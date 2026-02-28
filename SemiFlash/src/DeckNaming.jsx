@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./DeckNaming.css";
 
-function DeckNaming({ cardCount, onConfirm, onCancel }) {
-  const [deckName, setDeckName] = useState("");
+function DeckNaming({ cardCount, onConfirm, onCancel, defaultName = "" }) {
+  const [deckName, setDeckName] = useState(defaultName || "");
   const [error, setError] = useState("");
+
+  // update when defaultName changes
+  useEffect(() => {
+    if (defaultName) setDeckName(defaultName);
+  }, [defaultName]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

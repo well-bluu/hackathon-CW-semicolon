@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./StartScreen.css";
 
-function StartScreen({ onSelectMethod }) {
+function StartScreen({ onSelectMethod, onAIClick, onLoadAiFile }) {
   return (
     <div className="start-screen">
       <div className="start-container">
@@ -24,7 +24,9 @@ function StartScreen({ onSelectMethod }) {
           </button>
         </div>
 
-        <button className="ai-button">Let AI do your work</button>
+        <button className="ai-button" onClick={() => onAIClick && onAIClick()}>
+          Let AI do your work
+        </button>
       </div>
     </div>
   );

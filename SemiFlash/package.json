@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "ingest-ai": "node scripts/ingestAi.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
