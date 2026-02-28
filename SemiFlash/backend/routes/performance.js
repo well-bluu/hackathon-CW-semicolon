@@ -2,14 +2,11 @@ import express from "express";
 import {
   getPerformance,
   getSummary,
-  logFocusData,
 } from "../controllers/performanceController.js";
-import protect from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/:userId", protect, getPerformance);
-router.get("/:userId/summary", protect, getSummary);
-router.post("/log", protect, logFocusData);
+router.get("/:sessionId", getPerformance);
+router.get("/:sessionId/summary", getSummary);
 
 export default router;

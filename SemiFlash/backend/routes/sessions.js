@@ -5,13 +5,12 @@ import {
   endSession,
   getUserSessions,
 } from "../controllers/sessionController.js";
-import protect from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/start", protect, startSession);
-router.post("/answer", protect, submitAnswer);
-router.post("/end", protect, endSession);
-router.get("/:userId", protect, getUserSessions);
+router.post("/start", startSession);
+router.post("/answer", submitAnswer);
+router.post("/end", endSession);
+router.get("/:sessionId", getUserSessions);
 
 export default router;

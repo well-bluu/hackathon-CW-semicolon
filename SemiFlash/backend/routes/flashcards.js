@@ -5,13 +5,12 @@ import {
   createFlashcard,
   getBundledFlashcards,
 } from "../controllers/flashcardController.js";
-import protect from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", protect, getAllFlashcards);
-router.get("/bundle", protect, getBundledFlashcards);
-router.get("/:topic", protect, getFlashcardsByTopic);
-router.post("/", protect, createFlashcard);
+router.get("/", getAllFlashcards);
+router.get("/bundle", getBundledFlashcards);
+router.get("/:topic", getFlashcardsByTopic);
+router.post("/", createFlashcard);
 
 export default router;
