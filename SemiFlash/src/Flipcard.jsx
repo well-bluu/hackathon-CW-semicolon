@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./FlipCard.css";
 
-function FlipCard({ card, onNext }) {
+function FlipCard({ card, onNext, isLastCard = false }) {
   const [selectedOption, setSelectedOption] = useState(null);
   const [answered, setAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
@@ -37,7 +37,11 @@ function FlipCard({ card, onNext }) {
 
   const handleNextQuestion = () => {
     if (onNext) {
-      onNext();
+      onNext({
+        selectedOption,
+        isCorrect,
+        timeSeconds: time,
+      });
     }
   };
 
@@ -70,7 +74,7 @@ function FlipCard({ card, onNext }) {
               <p>✓ Correct!</p>
               <p className="time-taken">Time: {formatTime(time)}</p>
               <button className="next-btn" onClick={handleNextQuestion}>
-                Next Question →
+                {isLastCard ? "Finish Quiz" : "Next Question"}
               </button>
             </>
           ) : (
@@ -78,7 +82,7 @@ function FlipCard({ card, onNext }) {
               <p>✗ Wrong! The answer is: {card.answer}</p>
               <p className="time-taken">Time: {formatTime(time)}</p>
               <button className="next-btn" onClick={handleNextQuestion}>
-                Next Question →
+                {isLastCard ? "Finish Quiz" : "Next Question"}
               </button>
             </>
           )}

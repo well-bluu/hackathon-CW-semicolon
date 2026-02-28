@@ -2,23 +2,56 @@ import { useState } from "react";
 import FlipCard from "./Flipcard";
 import "./CardDeck.css";
 
-function CardDeck({ initialCards, deckName, onRestart }) {
+function CardDeck({ initialCards, deckName, onComplete }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
+  const [attempts, setAttempts] = useState([]);
 
-  const isFinished = answeredCount >= initialCards.length;
+  const handleNext = (result) => {
+    const currentCard = initialCards[currentCardIndex];
+    if (!currentCard) return;
 
-  const handleNext = () => {
-    setAnsweredCount((prev) => prev + 1);
+    const attempt = {
+      questionNumber: currentCardIndex + 1,
+      question: currentCard.question,
+      selectedAnswer: result.selectedOption,
+      correctAnswer: currentCard.answer,
+      isCorrect: Boolean(result.isCorrect),
+      timeSeconds: result.timeSeconds || 0,
+      topic: currentCard.topic || currentCard.subject || "General",
+    };
+
+    const updatedAttempts = [...attempts, attempt];
+    const nextAnsweredCount = answeredCount + 1;
+
+    setAttempts(updatedAttempts);
+    setAnsweredCount(nextAnsweredCount);
+
+    if (nextAnsweredCount >= initialCards.length) {
+      if (onComplete) {
+        onComplete({
+          totalQuestions: initialCards.length,
+          correctAnswers: updatedAttempts.filter((a) => a.isCorrect).length,
+          incorrectAnswers: updatedAttempts.filter((a) => !a.isCorrect),
+          attempts: updatedAttempts,
+        });
+      }
+      return;
+    }
+
     setCurrentCardIndex((prev) => prev + 1);
   };
 
-  const handleRetry = () => {
-    setCurrentCardIndex(0);
-    setAnsweredCount(0);
-  };
+  if (!initialCards || initialCards.length === 0) {
+    return (
+      <div className="deck-container">
+        <h2>No cards available</h2>
+      </div>
+    );
+  }
 
-  const currentCard = !isFinished ? initialCards[currentCardIndex] : null;
+  const currentCard = initialCards[currentCardIndex];
+  const isLastCard = currentCardIndex === initialCards.length - 1;
 
   return (
     <div className="deck-container">
@@ -38,30 +71,12 @@ function CardDeck({ initialCards, deckName, onRestart }) {
         </div>
       </div>
 
-      {isFinished ? (
-        <div className="completion-screen">
-          <h2>Deck Complete!</h2>
-          <p>You answered all {initialCards.length} cards.</p>
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              justifyContent: "center",
-              marginTop: 16,
-            }}>
-            <button className="next-btn" onClick={handleRetry}>
-              Try Again
-            </button>
-            {onRestart && (
-              <button className="next-btn" onClick={onRestart}>
-                Back to Home
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <FlipCard key={currentCard.id} card={currentCard} onNext={handleNext} />
-      )}
+      <FlipCard
+        key={currentCard.id}
+        card={currentCard}
+        onNext={handleNext}
+        isLastCard={isLastCard}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ function App() {
   const [pendingSuggestedName, setPendingSuggestedName] = useState("");
 
   const handleSelectMethod = (method) => {
+    setQuizResults(null);
     setView(method);
   };
 
@@ -68,6 +69,7 @@ function App() {
 
   const handleStart = (parsedCards, suggestedName) => {
     // Set pending cards and show naming dialog
+    setQuizResults(null);
     setPendingCards(parsedCards);
     setPendingSuggestedName(suggestedName || "");
   };
@@ -130,6 +132,7 @@ function App() {
   };
 
   const handleMakeDeck = () => {
+    setQuizResults(null);
     setView("start");
   };
 
@@ -138,7 +141,13 @@ function App() {
   };
 
   const handleRestart = () => {
+    setQuizResults(null);
     setView("start");
+  };
+
+  const handleQuizComplete = (results) => {
+    setQuizResults(results);
+    setView("results");
   };
 
   return (

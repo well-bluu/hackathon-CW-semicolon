@@ -35,7 +35,22 @@ function MyDecks({ onSelectDeck }) {
 
         {decks.length === 0 ? (
           <div className="empty-state">
-            <p className="empty-icon">📚</p>
+            <p className="empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M5.5 6.25a2.5 2.5 0 0 1 2.5-2.5h8.5a2.5 2.5 0 0 1 2.5 2.5v11.5a1 1 0 0 1-1.45.9l-1.85-.95a1 1 0 0 0-.9 0l-1.85.95a1 1 0 0 1-.9 0l-1.85-.95a1 1 0 0 0-.9 0l-1.85.95a1 1 0 0 1-1.45-.9V6.25Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M9 8.75h7M9 12h7"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </p>
             <p className="empty-text">No decks yet</p>
             <p className="empty-hint">Create a new deck to get started</p>
           </div>
