@@ -6,6 +6,7 @@ function FlipCard({ card, onNext, isLastCard = false }) {
   const [answered, setAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
   const [time, setTime] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Timer effect - stops when answer is submitted
   useEffect(() => {
@@ -36,6 +37,8 @@ function FlipCard({ card, onNext, isLastCard = false }) {
   };
 
   const handleNextQuestion = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (onNext) {
       onNext({
         selectedOption,
@@ -73,7 +76,10 @@ function FlipCard({ card, onNext, isLastCard = false }) {
             <>
               <p>✓ Correct!</p>
               <p className="time-taken">Time: {formatTime(time)}</p>
-              <button className="next-btn" onClick={handleNextQuestion}>
+              <button
+                className="next-btn"
+                onClick={handleNextQuestion}
+                disabled={isSubmitting}>
                 {isLastCard ? "Finish Quiz" : "Next Question"}
               </button>
             </>
@@ -81,7 +87,10 @@ function FlipCard({ card, onNext, isLastCard = false }) {
             <>
               <p>✗ Wrong! The answer is: {card.answer}</p>
               <p className="time-taken">Time: {formatTime(time)}</p>
-              <button className="next-btn" onClick={handleNextQuestion}>
+              <button
+                className="next-btn"
+                onClick={handleNextQuestion}
+                disabled={isSubmitting}>
                 {isLastCard ? "Finish Quiz" : "Next Question"}
               </button>
             </>

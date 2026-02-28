@@ -7,6 +7,7 @@ import StartScreen from "./StartScreen";
 import MyDecks from "./MyDecks";
 import DeckNaming from "./DeckNaming";
 import AIDemo from "./AIDemo";
+import ResultsScreen from "./ResultsScreen";
 import "./App.css";
 
 function App() {
@@ -119,16 +120,19 @@ function App() {
     setCurrentDeckName(deckName);
     setPendingCards(null);
     setPendingSuggestedName("");
+    setQuizResults(null);
     setView("quiz");
   };
 
   const handleDeckNameCancel = () => {
     setPendingCards(null);
+    setPendingSuggestedName("");
   };
 
   const handleSelectDeck = (deck) => {
     setCurrentDeckName(deck.name);
     setCards(deck.cards);
+    setQuizResults(null);
     setView("quiz");
   };
 
@@ -168,7 +172,7 @@ function App() {
           />
         )}
         {view === "text" && <InputScreen onStart={handleStart} />}
-        {view === "pdf" && <PdfUploadScreen />}
+        {view === "pdf" && <PdfUploadScreen onStart={handleStart} />}
         {view === "my-decks" && <MyDecks onSelectDeck={handleSelectDeck} />}
         {view === "ai" && (
           <AIDemo onGenerate={handleStart} onBack={() => setView("start")} />
@@ -180,57 +184,16 @@ function App() {
             onComplete={handleQuizComplete}
           />
         )}
-        {view === "results" && quizResults && (
-          <div className="results-screen">
-            <h2>Quiz Complete!</h2>
-            <p>
-              You got <strong>{quizResults.correctAnswers}</strong> out of{" "}
-              <strong>{quizResults.totalQuestions}</strong> correct
-            </p>
-            {quizResults.incorrectAnswers.length > 0 && (
-              <div className="incorrect-list">
-                <h3>Review Incorrect Answers:</h3>
-                {quizResults.incorrectAnswers.map((a, i) => (
-                  <div key={i} className="incorrect-item">
-                    <p>
-                      <strong>Q{a.questionNumber}:</strong> {a.question}
-                    </p>
-                    <p>
-                      Your answer:{" "}
-                      <span style={{ color: "#c62828" }}>
-                        {a.selectedAnswer}
-                      </span>
-                    </p>
-                    <p>
-                      Correct answer:{" "}
-                      <span style={{ color: "#2e7d32" }}>
-                        {a.correctAnswer}
-                      </span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div
-              style={{
-                marginTop: 16,
-                display: "flex",
-                gap: 12,
-                justifyContent: "center",
-              }}>
-              <button
-                className="next-btn"
-                onClick={() => {
-                  setQuizResults(null);
-                  setView("quiz");
-                }}>
-                Try Again
-              </button>
-              <button className="next-btn" onClick={handleRestart}>
-                Back to Home
-              </button>
-            </div>
-          </div>
+        {view === "results" && (
+          <ResultsScreen
+            results={quizResults}
+            deckName={currentDeckName}
+            onRetake={() => {
+              setQuizResults(null);
+              setView("quiz");
+            }}
+            onBackToDecks={handleMyDecks}
+          />
         )}
       </main>
 
