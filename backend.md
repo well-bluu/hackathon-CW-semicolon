@@ -36,15 +36,18 @@ Your Backend Responsibilities
    POST /api/auth/register → Create student account
    POST /api/auth/login → Login + return JWT token
    GET /api/auth/me → Get current user profile
+
    Flashcards
    GET /api/flashcards → Get all flashcards (by subject/topic)
    GET /api/flashcards/:topic → Get flashcards by topic
    POST /api/flashcards → Add new flashcard (admin)
+
    Sessions (Quiz/Study Sessions)
    POST /api/sessions/start → Start a new flashcard session
    POST /api/sessions/answer → Submit an answer + response time
    POST /api/sessions/end → End session, save results
    GET /api/sessions/:userId → Get session history
+
    Performance & Analytics
    GET /api/performance/:userId → Get weak/strong areas
    GET /api/performance/:userId/summary → Dashboard summary stats
