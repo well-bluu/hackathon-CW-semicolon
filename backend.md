@@ -1,108 +1,143 @@
-Backend Development for SemiFlash
-Given the file structure, this is a Vite + React frontend-only project. For your backend assignment, here's what you should build:
+# SemiFlash Backend (Current Implementation)
 
-What You Need to Build
-Tech Stack Recommendation
-Node.js + Express.js (REST API)
-MongoDB (Database) or Firebase (easier for students)
+This document describes the backend that is currently implemented in `SemiFlash/backend`.
 
-Your Backend Responsibilities
+## Stack
 
-1. Project Setup
-   backend/
-   ├── server.js
-   ├── package.json
-   ├── .env
-   ├── config/
-   │ └── db.js
-   ├── models/
-   │ ├── User.js
-   │ ├── Flashcard.js
-   │ ├── Session.js
-   │ └── Performance.js
-   ├── routes/
-   │ ├── auth.js
-   │ ├── flashcards.js
-   │ ├── sessions.js
-   │ └── performance.js
-   └── controllers/
-   ├── authController.js
-   ├── flashcardController.js
-   ├── sessionController.js
-   └── performanceController.js
+- Node.js + Express (ES modules)
+- CORS + JSON middleware
+- In-memory data stores (no active MongoDB persistence yet)
+- Optional Mongoose models exist but are not wired into runtime controllers
 
-2. API Endpoints to Build
-   Authentication
-   POST /api/auth/register → Create student account
-   POST /api/auth/login → Login + return JWT token
-   GET /api/auth/me → Get current user profile
+## Project Structure
 
-   Flashcards
-   GET /api/flashcards → Get all flashcards (by subject/topic)
-   GET /api/flashcards/:topic → Get flashcards by topic
-   POST /api/flashcards → Add new flashcard (admin)
+```text
+SemiFlash/backend/
+├── server.js
+├── package.json
+├── config/
+│   └── db.js
+├── middleware/
+│   └── errorHandler.js
+├── routes/
+│   ├── flashcards.js
+│   ├── sessions.js
+│   └── performance.js
+├── controllers/
+│   ├── flashcardController.js
+│   ├── sessionController.js
+│   └── performanceController.js
+└── models/
+    ├── Flashcard.js
+    ├── Session.js
+    └── Performance.js
+```
 
-   Sessions (Quiz/Study Sessions)
-   POST /api/sessions/start → Start a new flashcard session
-   POST /api/sessions/answer → Submit an answer + response time
-   POST /api/sessions/end → End session, save results
-   GET /api/sessions/:userId → Get session history
+## Server Behavior
 
-   Performance & Analytics
-   GET /api/performance/:userId → Get weak/strong areas
-   GET /api/performance/:userId/summary → Dashboard summary stats
-   POST /api/performance/log → Log eye-tracking focus data
+- Base URL (dev): `http://localhost:5000`
+- Health endpoint: `GET /` returns `{ "message": "SemiFlash API running" }`
+- Mounted API routes:
+  - `/api/flashcards`
+  - `/api/sessions`
+  - `/api/performance`
+- Error handling is centralized through `middleware/errorHandler.js`
 
-3. Key Data Models
-   Session Model — most important for your app's core feature:
-   js{
-   userId: ObjectId,
-   startTime: Date,
-   endTime: Date,
-   answers: [
-   {
-   flashcardId: ObjectId,
-   topic: String,
-   responseTimeMs: Number, // ← core mechanic
-   isCorrect: Boolean,
-   focusScore: Number // from eye-tracking (0-1)
-   }
-   ]
-   }
-   Performance Model:
-   js{
-   userId: ObjectId,
-   topicBreakdown: [
-   {
-   topic: String,
-   avgResponseTimeMs: Number,
-   accuracy: Number, // percentage
-   avgFocusScore: Number,
-   attemptCount: Number,
-   tag: String // "weak" | "average" | "strong"
-   }
-   ],
-   lastUpdated: Date
-   }
+## API Endpoints (Implemented)
 
-4. Performance Analysis Logic
-   This is your most important backend function — tagging weak vs strong areas:
-   jsfunction analyzePerformance(topicStats) {
-   // Tag based on response time + accuracy
-   if (accuracy < 50% || avgResponseTime > 15s) → "weak"
-   if (accuracy > 80% && avgResponseTime < 5s) → "strong"
-   else → "average"
-   }
+### Flashcards
 
-5. SDG 4 / Low-Bandwidth Considerations
-   Since the problem involves rural/low-connectivity students:
+1. `GET /api/flashcards`
+- Returns all flashcards from in-memory store.
 
-Keep API responses lightweight (minimal JSON)
-Add offline support hint: expose a GET /api/flashcards/bundle endpoint that returns all flashcards in one call so the frontend can cache them
-Avoid large payloads — no base64 images in responses
+2. `GET /api/flashcards/bundle`
+- Returns all flashcards (same data as `GET /api/flashcards`), intended for bulk/offline caching use.
 
-Quick Start Commands
-bashmkdir backend && cd backend
-npm init -y
-npm install express mongoose dotenv bcryptjs jsonwebtoken cors
-npm install --save-dev nodemon
+3. `GET /api/flashcards/:topic`
+- Returns cards filtered by exact topic match.
+
+4. `POST /api/flashcards`
+- Creates a flashcard.
+- Required: `question`, `answer`, `options` (minimum 2 options).
+- Validation: `answer` must be one of `options`.
+- Defaults:
+  - `topic`: `"General"`
+  - `subject`: `"General"`
+  - `difficulty`: `"medium"`
+
+Example request:
+
+```json
+{
+  "question": "What is 5 x 6?",
+  "options": ["25", "30", "35"],
+  "answer": "30"
+}
+```
+
+### Sessions
+
+1. `POST /api/sessions/start`
+- Creates a new session.
+- Response: `{ "sessionId": "session_<timestamp>" }`
+
+2. `POST /api/sessions/answer`
+- Appends an answer record to an existing session.
+- Body fields:
+  - `sessionId` (required)
+  - `flashcardId`
+  - `topic` (defaults to `"General"`)
+  - `responseTimeMs`
+  - `isCorrect`
+  - `focusScore` (defaults to `0`)
+
+3. `POST /api/sessions/end`
+- Sets `endTime` for the given session.
+
+4. `GET /api/sessions/:sessionId`
+- Returns one session object by `sessionId`.
+
+### Performance
+
+1. `GET /api/performance/:sessionId`
+- Computes per-topic analytics from a session's answers:
+  - `accuracy`
+  - `avgResponseTimeMs`
+  - `avgFocusScore`
+  - `attemptCount`
+  - `tag` (`weak`, `average`, `strong`)
+
+Tagging logic:
+- `weak`: accuracy < 50 OR average response time > 15000 ms
+- `strong`: accuracy > 80 AND average response time < 5000 ms
+- otherwise `average`
+
+2. `GET /api/performance/:sessionId/summary`
+- Returns:
+  - `totalAnswered`
+  - `correctAnswers`
+  - `accuracy` (string, 2 decimals)
+  - `avgResponseTimeMs` (string, rounded)
+
+## Data Storage Notes
+
+- Flashcards and sessions are currently stored in memory only.
+- Restarting the backend clears all data.
+- `models/*.js` and `config/db.js` are present for MongoDB but `connectDB()` is not called in `server.js` yet.
+
+## Run Commands
+
+From `SemiFlash/backend`:
+
+```bash
+npm install
+npm run dev
+```
+
+or:
+
+```bash
+npm start
+```
+
+Default port is `5000` unless `PORT` is set in environment variables.
