@@ -1,78 +1,137 @@
 import { useState } from 'react'
 import { queryOllama } from './aiService'
+// load prompt.md so we can include instructions when generating files
+import systemPrompt from './prompt/prompt.md?raw'
 
 function Flashcard() {
-  const [prompt, setPrompt] = useState('Explain React hooks')
   const [response, setResponse] = useState('')
   const [loading, setLoading] = useState(false)
-  const [startedAt, setStartedAt] = useState(null)
-  const [finishedAt, setFinishedAt] = useState(null)
+  const [abortController, setAbortController] = useState(null)
 
-  const handleAsk = async () => {
-    setLoading(true)
-    setStartedAt(new Date())
-    setFinishedAt(null)
-    setResponse('')
+  const [notes, setNotes] = useState('')
+  // fileName not needed since we no longer auto-download
+  const [generatedContent, setGeneratedContent] = useState('')
+  // fixed model, user-specified
+  const MODEL = 'deepseek-r1:8b';
+
+  // we might want to strip the user question section from the system prompt
+  const promptHeader = systemPrompt.split('---')[0] || systemPrompt;
+
+
+  // query AI using notes and show output; manual conversion
+  const handleQueryAI = async () => {
+    if (!notes.trim()) return;
+    setLoading(true);
+    setGeneratedContent('');
+
+    // allow the user to cancel request
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
-      // example using streaming callback; remove onProgress if you want normal JSON
-      const data = await queryOllama(prompt, {
-        // only pass options when you need to override defaults
-        // endpoint: '/ollama/api/chat',
-        // stream: true,
-        // timeoutMs: 0, // disable our abort for long streams
-        onProgress: (partial) => {
-          // when streaming, the partial string may already be just the response text,
-          // so show it as-is
-          setResponse(partial)
-        },
-      })
+      // ask model to produce a JS export based on notes
+      // prepend system instructions from prompt.md (updated to describe module generation)
+      const instruction = `${promptHeader.trim()}
 
-      console.log('Ollama final response:', data)
-      // if the helper returned an object or a JSON string, extract the text field(s)
-      let output = data
-      if (typeof data === 'string') {
-        try {
-          const obj = JSON.parse(data)
-          if (obj?.choices && obj.choices.length) {
-            output = obj.choices.map(c => c.text).join('')
-          }
-        } catch {
-          // not JSON, leave as-is
-        }
-      } else if (data?.choices && data.choices.length) {
-        output = data.choices.map(c => c.text).join('')
+You are a JavaScript module generator. You MUST respond with valid JavaScript code only, nothing else. \
+Create a module that exports a constant named "data" whose value is an object representing the content of the notes below. \
+If you cannot convert the notes, return an empty object.
+Notes:
+${notes}`;
+      console.log('sending instruction to model', instruction);
+
+      // no timeout and use streaming so we see progress
+      const result = await queryOllama(instruction, {
+        signal: controller.signal,
+        stream: true,
+        model: MODEL,
+        // abort the request if nothing happens for 30 seconds
+        timeoutMs: 30_000,
+        // also stop the streaming loop after 30 seconds of data
+        maxTimeMs: 30_000,
+        onProgress: (partial) => {
+          setGeneratedContent(partial);
+        },
+      });
+      let output = result;
+      if (typeof result === 'object' && result.choices) {
+        output = result.choices.map(c => c.text).join('');
       }
-      setResponse(output)
+
+      // store output for preview
+      setGeneratedContent(output || '// model produced no text');
+      // no automatic download - user can copy the preview if desired
     } catch (err) {
-      console.error('Ollama error', err)
-      setResponse(`Error: ${err.message}`)
+      if (err.name === 'AbortError') {
+        setGeneratedContent('// request cancelled (probably manually aborted)');
+      } else {
+        console.error('file creation error', err);
+        setGeneratedContent(`// error: ${err.message}`);
+      }
     } finally {
-      setLoading(false)
-      setFinishedAt(new Date())
+      setLoading(false);
+      setAbortController(null);
     }
   }
 
   return (
     <div>
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        rows={3}
-        style={{ width: '100%' }}
-      />
-      <button onClick={handleAsk} disabled={loading}>
-        {loading ? 'Asking...' : 'Ask AI'}
-      </button>
 
-      {startedAt && (
-        <div style={{ fontSize: 'smaller', color: '#666' }}>
-          Sent: {startedAt.toLocaleTimeString()}
-          {finishedAt && (<> – Received: {finishedAt.toLocaleTimeString()}</>)}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={{ display: 'block', marginTop: '0.5rem' }}>
+          User notes to convert to JS file:
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            style={{ width: '100%' }}
+          />
+        </label>
+        <div>
+          <button onClick={handleQueryAI} disabled={loading}>
+            {loading ? 'Generating...' : 'Run AI'}
+          </button>
+          {loading && abortController && (
+            <button onClick={() => abortController.abort()} style={{ marginLeft: '0.5rem' }}>
+              Cancel
+            </button>
+          )}
+          <button
+            onClick={async () => {
+              console.log('testing model connectivity');
+              try {
+                const res = await queryOllama('hello', { model: MODEL });
+                console.log('model test response', res);
+                alert('check console for test response');
+              } catch (e) {
+                console.error('model test failed', e);
+                alert('model test failed (see console)');
+              }
+            }}
+            style={{ marginLeft: '0.5rem' }}
+          >
+            Test model
+          </button>
+        </div>
+      </div>
+
+      {generatedContent && (
+        <div style={{ marginTop: '1rem' }}>
+          <h3>Preview of generated file</h3>
+          <pre style={{ background: '#f5f5f5', padding: '0.5rem' }}>
+            {generatedContent}
+          </pre>
+          {generatedContent.trim() === '// model produced no text' && (
+            <p style={{ color: 'red' }}>
+              The model returned no output. Check the browser console to see the
+              request/response, and make sure the Ollama server has the
+              <code>{MODEL}</code> model installed and running. You can also use
+              the "Test model" button above to verify connectivity.
+            </p>
+          )}
         </div>
       )}
 
-      <pre>{response}</pre>
     </div>
   )
 }
