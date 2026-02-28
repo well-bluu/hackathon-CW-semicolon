@@ -1,0 +1,131 @@
+.pdf-upload-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.upload-container {
+  background: white;
+  border-radius: 20px;
+  padding: 60px 40px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.upload-container h2 {
+  font-size: 28px;
+  margin: 0 0 10px 0;
+  color: #252627;
+  text-align: center;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 30px 0;
+  text-align: center;
+}
+
+.upload-zone {
+  margin: 30px 0;
+}
+
+.upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 15px;
+  padding: 50px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #252627;
+  background: #f8f9fa;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.upload-text {
+  font-size: 16px;
+  color: #252627;
+  margin: 10px 0 5px 0;
+  font-weight: 500;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.file-info {
+  background: #e8f5e9;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.file-name {
+  color: #2e7d32;
+  margin: 0;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.file-size {
+  color: #558b2f;
+  margin: 5px 0 0 0;
+  font-size: 12px;
+}
+
+.error-message {
+  background: #ffebee;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  color: #c62828;
+  text-align: center;
+  font-size: 14px;
+}
+
+.upload-button {
+  width: 100%;
+  padding: 12px 20px;
+  background: #252627;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.upload-button:hover:not(:disabled) {
+  background: #1a1a1b;
+}
+
+.upload-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .upload-container {
+    padding: 40px 20px;
+  }
+
+  .upload-container h2 {
+    font-size: 24px;
+  }
+}

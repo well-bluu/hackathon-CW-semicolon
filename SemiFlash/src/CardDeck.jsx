@@ -2,7 +2,7 @@ import { useState } from "react";
 import FlipCard from "./Flipcard";
 import "./CardDeck.css";
 
-function CardDeck({ initialCards }) {
+function CardDeck({ initialCards, deckName }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
 
@@ -17,6 +17,8 @@ function CardDeck({ initialCards }) {
 
   return (
     <div className="deck-container">
+      {deckName && <div className="deck-title">{deckName}</div>}
+
       <div className="progress-section">
         <div className="progress-label">
           {answeredCount} / {initialCards.length} completed

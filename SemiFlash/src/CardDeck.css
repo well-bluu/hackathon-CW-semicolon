@@ -6,6 +6,17 @@
   gap: 30px;
   padding: 40px 20px;
   min-height: 80vh;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  background-color: #fff9fb;
+}
+
+.deck-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #252627;
+  margin-bottom: 10px;
 }
 
 .progress-section {
