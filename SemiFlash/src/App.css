@@ -5,6 +5,17 @@
   text-align: center;
 }
 
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  margin-left: 250px;
+  padding: 20px;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
