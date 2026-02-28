@@ -39,10 +39,10 @@ function App() {
           /* empty */
         }
 
-        const localNames = new Set(localDecks.map((d) => d.name.toLowerCase()));
+        const localIds = new Set(localDecks.map((d) => d.id));
         let added = 0;
         for (const fd of fileDecks) {
-          if (!localNames.has(fd.name.toLowerCase())) {
+          if (!localIds.has(fd.id)) {
             localDecks.push({
               id: fd.id,
               name: fd.name,
@@ -213,7 +213,9 @@ function App() {
         const updatedDecks = decks.map((deck) => {
           if (deck.id !== currentDeckId) return deck;
 
-          const attempts = Array.isArray(results.attempts) ? results.attempts : [];
+          const attempts = Array.isArray(results.attempts)
+            ? results.attempts
+            : [];
           const totalAnswered = attempts.length;
           const correctAnswers = attempts.filter((a) => a.isCorrect).length;
           const mistakes = totalAnswered - correctAnswers;

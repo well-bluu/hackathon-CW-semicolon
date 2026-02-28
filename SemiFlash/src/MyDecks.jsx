@@ -36,13 +36,14 @@ function MyDecks({ onSelectDeck }) {
 
       if (cancelled) return;
 
-      // 3. Merge: include all localStorage decks, then add any file decks
-      //    that don't already exist in localStorage (by matching name or fileName)
-      const localNames = new Set(localDecks.map((d) => d.name.toLowerCase()));
-      const merged = [...localDecks];
-      for (const fd of fileDecks) {
-        if (!localNames.has(fd.name.toLowerCase())) {
-          merged.push(fd);
+      // 3. Merge: start with file decks as the source of truth,
+      //    then add localStorage-only decks (ones not originating from a file)
+      const fileIds = new Set(fileDecks.map((d) => d.id));
+      const merged = [...fileDecks];
+      for (const ld of localDecks) {
+        // Keep localStorage decks that don't correspond to a file
+        if (!fileIds.has(ld.id) && ld.source !== "file") {
+          merged.push(ld);
         }
       }
 
