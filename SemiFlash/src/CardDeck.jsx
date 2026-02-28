@@ -2,18 +2,56 @@ import { useState } from "react";
 import FlipCard from "./Flipcard";
 import "./CardDeck.css";
 
-function CardDeck({ initialCards, deckName }) {
+function CardDeck({ initialCards, deckName, onComplete }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
+  const [attempts, setAttempts] = useState([]);
 
-  const handleNext = () => {
-    // Increment answered count
-    setAnsweredCount((prev) => prev + 1);
-    // Move to next card
+  const handleNext = (result) => {
+    const currentCard = initialCards[currentCardIndex];
+    if (!currentCard) return;
+
+    const attempt = {
+      questionNumber: currentCardIndex + 1,
+      question: currentCard.question,
+      selectedAnswer: result.selectedOption,
+      correctAnswer: currentCard.answer,
+      isCorrect: Boolean(result.isCorrect),
+      timeSeconds: result.timeSeconds || 0,
+      topic: currentCard.topic || currentCard.subject || "General",
+    };
+
+    const updatedAttempts = [...attempts, attempt];
+    const nextAnsweredCount = answeredCount + 1;
+
+    setAttempts(updatedAttempts);
+    setAnsweredCount(nextAnsweredCount);
+
+    if (nextAnsweredCount >= initialCards.length) {
+      if (onComplete) {
+        onComplete({
+          totalQuestions: initialCards.length,
+          correctAnswers: updatedAttempts.filter((a) => a.isCorrect).length,
+          incorrectAnswers: updatedAttempts.filter((a) => !a.isCorrect),
+          attempts: updatedAttempts,
+        });
+      }
+      return;
+    }
+
     setCurrentCardIndex((prev) => prev + 1);
   };
 
-  const currentCard = initialCards[currentCardIndex % initialCards.length];
+  if (!initialCards || initialCards.length === 0) {
+    return (
+      <div className="deck-container">
+        <h2>No cards available</h2>
+      </div>
+    );
+  }
+
+  const currentCard = initialCards[currentCardIndex];
+  const isLastCard = currentCardIndex === initialCards.length - 1;
 
   return (
     <div className="deck-container">
@@ -32,7 +70,12 @@ function CardDeck({ initialCards, deckName }) {
         </div>
       </div>
 
-      <FlipCard key={currentCard.id} card={currentCard} onNext={handleNext} />
+      <FlipCard
+        key={currentCard.id}
+        card={currentCard}
+        onNext={handleNext}
+        isLastCard={isLastCard}
+      />
     </div>
   );
 }

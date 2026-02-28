@@ -6,6 +6,7 @@ import PdfUploadScreen from "./PdfUploadScreen";
 import StartScreen from "./StartScreen";
 import MyDecks from "./MyDecks";
 import DeckNaming from "./DeckNaming";
+import ResultsScreen from "./ResultsScreen";
 import "./App.css";
 
 function App() {
@@ -13,13 +14,16 @@ function App() {
   const [view, setView] = useState("start");
   const [currentDeckName, setCurrentDeckName] = useState("");
   const [pendingCards, setPendingCards] = useState(null);
+  const [quizResults, setQuizResults] = useState(null);
 
   const handleSelectMethod = (method) => {
+    setQuizResults(null);
     setView(method);
   };
 
   const handleStart = (parsedCards) => {
     // Set pending cards and show naming dialog
+    setQuizResults(null);
     setPendingCards(parsedCards);
   };
 
@@ -47,6 +51,7 @@ function App() {
     setCards(pendingCards);
     setCurrentDeckName(deckName);
     setPendingCards(null);
+    setQuizResults(null);
     setView("quiz");
   };
 
@@ -57,11 +62,12 @@ function App() {
   const handleSelectDeck = (deck) => {
     setCurrentDeckName(deck.name);
     setCards(deck.cards);
-    setView("quiz");
+    setQuizResults(null);
     setView("quiz");
   };
 
   const handleMakeDeck = () => {
+    setQuizResults(null);
     setView("start");
   };
 
@@ -70,7 +76,13 @@ function App() {
   };
 
   const handleRestart = () => {
+    setQuizResults(null);
     setView("start");
+  };
+
+  const handleQuizComplete = (results) => {
+    setQuizResults(results);
+    setView("results");
   };
 
   return (
@@ -89,7 +101,19 @@ function App() {
         {view === "pdf" && <PdfUploadScreen />}
         {view === "my-decks" && <MyDecks onSelectDeck={handleSelectDeck} />}
         {view === "quiz" && (
-          <CardDeck initialCards={cards} deckName={currentDeckName} />
+          <CardDeck
+            initialCards={cards}
+            deckName={currentDeckName}
+            onComplete={handleQuizComplete}
+          />
+        )}
+        {view === "results" && (
+          <ResultsScreen
+            results={quizResults}
+            deckName={currentDeckName}
+            onRetake={() => setView("quiz")}
+            onBackToDecks={handleMyDecks}
+          />
         )}
       </main>
 

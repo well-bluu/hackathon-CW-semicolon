@@ -24,7 +24,7 @@ function Header({ currentView, onMakeDeck, onMyDecks, onRestart }) {
           <span className="nav-text">My Decks</span>
         </button>
 
-        {currentView === "quiz" && (
+        {(currentView === "quiz" || currentView === "results") && (
           <button className="nav-item nav-separator active" onClick={onRestart}>
             <span className="nav-icon">03</span>
             <span className="nav-text">Restart</span>
