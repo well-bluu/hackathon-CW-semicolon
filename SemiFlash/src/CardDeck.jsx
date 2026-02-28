@@ -4,10 +4,12 @@ import "./CardDeck.css";
 
 function CardDeck({ initialCards, deckName, onComplete }) {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [answeredCount, setAnsweredCount] = useState(0);
   const [attempts, setAttempts] = useState([]);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const handleNext = (result) => {
+    if (isCompleted) return;
+
     const currentCard = initialCards[currentCardIndex];
     if (!currentCard) return;
 
@@ -22,12 +24,11 @@ function CardDeck({ initialCards, deckName, onComplete }) {
     };
 
     const updatedAttempts = [...attempts, attempt];
-    const nextAnsweredCount = answeredCount + 1;
-
+    const nextAnsweredCount = updatedAttempts.length;
     setAttempts(updatedAttempts);
-    setAnsweredCount(nextAnsweredCount);
 
     if (nextAnsweredCount >= initialCards.length) {
+      setIsCompleted(true);
       if (onComplete) {
         onComplete({
           totalQuestions: initialCards.length,
@@ -59,14 +60,14 @@ function CardDeck({ initialCards, deckName, onComplete }) {
 
       <div className="progress-section">
         <div className="progress-label">
-          {Math.min(answeredCount, initialCards.length)} / {initialCards.length}{" "}
-          completed
+          {Math.min(attempts.length, initialCards.length)} /{" "}
+          {initialCards.length} completed
         </div>
         <div className="progress-bar">
           <div
             className="progress-fill"
             style={{
-              width: `${Math.min((answeredCount / initialCards.length) * 100, 100)}%`,
+              width: `${Math.min((attempts.length / initialCards.length) * 100, 100)}%`,
             }}></div>
         </div>
       </div>

@@ -12,18 +12,35 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
     );
   }
 
-  const { totalQuestions, correctAnswers, incorrectAnswers, attempts } = results;
+  const attempts = Array.isArray(results.attempts) ? results.attempts : [];
+  const totalQuestions = results.totalQuestions || attempts.length;
+  const incorrectAnswers = attempts.filter((a) => !a.isCorrect);
+  const correctAnswers = attempts.length - incorrectAnswers.length;
+  const totalMistakes = incorrectAnswers.length;
   const accuracy = totalQuestions
     ? ((correctAnswers / totalQuestions) * 100).toFixed(1)
     : "0.0";
-  const averageResponseSeconds = attempts.length
+  const averageResponseSecondsRaw = attempts.length
     ? (
         attempts.reduce((sum, attempt) => sum + attempt.timeSeconds, 0) /
         attempts.length
-      ).toFixed(1)
-    : "0.0";
+      )
+    : 0;
+  const averageResponseSeconds = averageResponseSecondsRaw.toFixed(1);
+  const slowThresholdSeconds = Math.max(10, averageResponseSecondsRaw * 1.25);
 
-  const struggledQuestionNumbers = incorrectAnswers.map((a) => a.questionNumber);
+  const perQuestionPerformance = attempts.map((attempt) => {
+    const isSlow = attempt.timeSeconds >= slowThresholdSeconds;
+    return {
+      ...attempt,
+      isSlow,
+      struggled: !attempt.isCorrect || isSlow,
+    };
+  });
+
+  const struggledQuestionNumbers = perQuestionPerformance
+    .filter((a) => a.struggled)
+    .map((a) => a.questionNumber);
 
   const topicStats = attempts.reduce((acc, attempt) => {
     const topic = attempt.topic || "General";
@@ -37,7 +54,7 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
   }, {});
 
   const weakTopics = Object.entries(topicStats)
-    .filter(([, stat]) => stat.incorrect > 0)
+    .filter(([topic, stat]) => topic !== "General" && stat.incorrect > 0)
     .map(([topic, stat]) => ({
       topic,
       missRate: Math.round((stat.incorrect / stat.total) * 100),
@@ -45,6 +62,32 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
       total: stat.total,
     }))
     .sort((a, b) => b.missRate - a.missRate);
+
+  const hardestQuestions = [...attempts]
+    .sort((a, b) => b.timeSeconds - a.timeSeconds)
+    .slice(0, 3);
+
+  const slowQuestionCount = perQuestionPerformance.filter((a) => a.isSlow).length;
+
+  const strengths = [];
+  if (Number(accuracy) >= 85) strengths.push("High overall accuracy");
+  if (averageResponseSecondsRaw > 0 && averageResponseSecondsRaw <= 8) {
+    strengths.push("Fast average response time");
+  }
+  if (totalMistakes === 0) strengths.push("Perfect run with no mistakes");
+
+  const weaknesses = [];
+  if (totalMistakes > 0) {
+    weaknesses.push(`${totalMistakes} incorrect answer(s) to review`);
+  }
+  if (slowQuestionCount > 0) {
+    weaknesses.push(
+      `${slowQuestionCount} question(s) answered slower than ${slowThresholdSeconds.toFixed(1)}s`,
+    );
+  }
+  if (weakTopics.length > 0) {
+    weaknesses.push(`Weakest topic: ${weakTopics[0].topic}`);
+  }
 
   return (
     <section className="results-screen">
@@ -64,8 +107,8 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
             <span className="metric-value">{accuracy}%</span>
           </div>
           <div className="metric-item">
-            <span className="metric-label">Incorrect</span>
-            <span className="metric-value">{incorrectAnswers.length}</span>
+            <span className="metric-label">Mistakes</span>
+            <span className="metric-value">{totalMistakes}</span>
           </div>
           <div className="metric-item">
             <span className="metric-label">Avg Response</span>
@@ -76,9 +119,36 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
         <div className="results-section">
           <h3>Question Numbers You Struggled With</h3>
           {struggledQuestionNumbers.length === 0 ? (
-            <p className="muted">Great work. You answered all questions correctly.</p>
+            <p className="muted">
+              Great work. No struggled questions detected.
+            </p>
           ) : (
             <p className="inline-list">{struggledQuestionNumbers.join(", ")}</p>
+          )}
+        </div>
+
+        <div className="results-section">
+          <h3>Per-Question Performance</h3>
+          {perQuestionPerformance.length === 0 ? (
+            <p className="muted">No attempt data available.</p>
+          ) : (
+            <ul className="attempt-list">
+              {perQuestionPerformance.map((item) => (
+                <li key={`attempt-${item.questionNumber}`}>
+                  <div className="attempt-top">
+                    <span className="question-line">Question {item.questionNumber}</span>
+                    <span
+                      className={`status-pill ${item.isCorrect ? "ok" : "bad"}`}>
+                      {item.isCorrect ? "Correct" : "Wrong"}
+                    </span>
+                  </div>
+                  <div className="attempt-meta">
+                    <span>Time: {item.timeSeconds}s</span>
+                    {item.isSlow && <span className="slow-flag">Slow</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
@@ -104,7 +174,9 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
         <div className="results-section">
           <h3>Weak Topics</h3>
           {weakTopics.length === 0 ? (
-            <p className="muted">No weak topics detected from this attempt.</p>
+            <p className="muted">
+              No weak topics detected (or topic labels are not available).
+            </p>
           ) : (
             <ul className="topic-list">
               {weakTopics.map((topic) => (
@@ -117,6 +189,52 @@ function ResultsScreen({ results, deckName, onRetake, onBackToDecks }) {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="results-section">
+          <h3>Questions That Took The Longest</h3>
+          {hardestQuestions.length === 0 ? (
+            <p className="muted">No timing data available.</p>
+          ) : (
+            <ul className="topic-list">
+              {hardestQuestions.map((item) => (
+                <li key={`time-${item.questionNumber}`}>
+                  <span>Question {item.questionNumber}</span>
+                  <span>{item.timeSeconds}s</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="results-section">
+          <h3>Strengths and Weaknesses</h3>
+          <div className="summary-grid">
+            <div>
+              <p className="summary-title">Strengths</p>
+              {strengths.length === 0 ? (
+                <p className="muted">No strong patterns yet.</p>
+              ) : (
+                <ul className="summary-list">
+                  {strengths.map((item) => (
+                    <li key={`s-${item}`}>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="summary-title">Weaknesses</p>
+              {weaknesses.length === 0 ? (
+                <p className="muted">No clear weakness detected.</p>
+              ) : (
+                <ul className="summary-list">
+                  {weaknesses.map((item) => (
+                    <li key={`w-${item}`}>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="results-actions">
