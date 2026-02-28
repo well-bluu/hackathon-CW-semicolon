@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Lightbulb icon">
+  <rect width="128" height="128" fill="#F4F1ED"/>
+  <g fill="none" stroke="#1F1F1F" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+    <path d="M42 92h44"/>
+    <path d="M45 101h38"/>
+    <path d="M50 110h28"/>
+    <path d="M64 19v8"/>
+    <path d="M38 28l4 6"/>
+    <path d="M90 28l-4 6"/>
+    <path d="M37 74c-8-7-12-17-12-28 0-22 18-40 40-40s40 18 40 40c0 11-4 21-12 28-10 9-12 17-12 23H49c0-6-2-14-12-23z"/>
+  </g>
+  <path d="M71 42l-8 14h9l-14 22 8-16h-10l15-20z" fill="#1F1F1F"/>
+</svg>
