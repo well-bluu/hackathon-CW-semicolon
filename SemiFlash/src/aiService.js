@@ -20,11 +20,17 @@ export async function queryOllama(prompt, options = {}) {
   const endpoint = options.endpoint || '/ollama/v1/completions';
   console.log('Sending request to', endpoint, body)
 
+  // if timeoutMs is provided and greater than zero, use it; otherwise do not abort
   let controller;
   let timeoutId;
-  if (options.timeoutMs !== undefined && options.timeoutMs > 0) {
+  const timeoutMs = options.timeoutMs;
+  console.log('timeoutMs:', timeoutMs);
+  if (timeoutMs !== undefined && timeoutMs > 0) {
     controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), options.timeoutMs);
+    timeoutId = setTimeout(() => {
+      console.warn(`queryOllama aborting after ${timeoutMs}ms`);
+      controller.abort();
+    }, timeoutMs);
   }
 
   let res;
@@ -46,5 +52,20 @@ export async function queryOllama(prompt, options = {}) {
     throw new Error(`Ollama request failed  : ${res.status} ${text}`);
   }
 
+  // stream progress if requested
+  if (options.onProgress && res.body) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      accumulated += decoder.decode(value, { stream: true });
+      options.onProgress(accumulated);
+    }
+    return accumulated;
+  }
+
+  // default: parse as JSON
   return res.json();
 }
