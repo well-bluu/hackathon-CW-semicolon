@@ -28,7 +28,7 @@ This project uses a local Ollama model for AI-assisted card generation. The reco
 Example workflow (generate and ingest in one step):
 
 ```bash
-ollama run deepseek-r1:8b --prompt "Generate 10 multiple-choice flashcards about photosynthesis in numbered format" \
+ollama run deepseek-r1:8b with the following rules /src/prompt/prompt/md\
 	| node scripts/ingestAi.js
 ```
 
