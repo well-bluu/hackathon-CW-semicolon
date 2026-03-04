@@ -122,3 +122,25 @@ Contributions are welcome. Please open issues or pull requests with a clear desc
 ## License
 
 This project is provided as-is. Add a license file if you want to specify reuse terms.
+
+## Screenshots
+
+UI screenshots are included in `SemiFlash/img/`. Below are a few key views:
+
+- **Main page**
+
+	![Main Page](SemiFlash/img/main%20page.png)
+
+- **Card decks**
+
+	![Card Decks](SemiFlash/img/card%20decks.png)
+
+- **Card sample / study view**
+
+	![Card Sample](SemiFlash/img/card%20sample%20.png)
+
+- **Deck statistics**
+
+	![Deck Statistics 1](SemiFlash/img/deck%20statistics%20.png)
+	![Deck Statistics 2](SemiFlash/img/deck%20statistics%202.png)
+
