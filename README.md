@@ -65,16 +65,9 @@ cd ..
 MONGO_URI=<your-mongodb-connection-string>
 ```
 
-4. Run the backend and frontend in development mode (in separate terminals):
+4. Run the frontend in development mode:
 
-Terminal 1 (backend):
-
-```bash
-cd SemiFlash/backend
-npm run dev            # starts server with nodemon (script: "dev")
-```
-
-Terminal 2 (frontend):
+Terminal (frontend):
 
 ```bash
 cd SemiFlash
