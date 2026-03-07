@@ -1,5 +1,3 @@
-import { sessions } from "./sessionController.js"; // not needed since its in-memory, explained below
-
 // In-memory sessions reference (shared)
 let sessionStore = {};
 

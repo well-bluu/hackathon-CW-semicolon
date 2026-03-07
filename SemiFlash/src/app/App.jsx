@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import Header from "./Header";
-import CardDeck from "./CardDeck";
-import InputScreen from "./InputScreen";
-import PdfUploadScreen from "./PdfUploadScreen";
-import StartScreen from "./StartScreen";
-import MyDecks from "./MyDecks";
-import DeckNaming from "./DeckNaming";
-import AIDemo from "./AIDemo";
-import ResultsScreen from "./ResultsScreen";
+import Header from "../components/Header/Header";
+import CardDeck from "../components/CardDeck/CardDeck";
+import InputScreen from "../screens/InputScreen/InputScreen";
+import PdfUploadScreen from "../screens/PdfUploadScreen/PdfUploadScreen";
+import StartScreen from "../screens/StartScreen/StartScreen";
+import MyDecks from "../screens/MyDecks/MyDecks";
+import DeckNaming from "../screens/DeckNaming/DeckNaming";
+import AIDemo from "../components/AIDemo/AIDemo";
+import ResultsScreen from "../screens/ResultsScreen/ResultsScreen";
 import "./App.css";
 
 function App() {
@@ -66,52 +66,6 @@ function App() {
   const handleSelectMethod = (method) => {
     setQuizResults(null);
     setView(method);
-  };
-
-  const loadAiGeneratedFile = async () => {
-    try {
-      // fetch the generated file as text and extract the exported `cards` value
-      const url = `${location.origin}/src/data/ai_generated_cards.js`;
-      const resp = await fetch(url, { cache: "no-store" });
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-      const text = await resp.text();
-      // accept either `export const cards = [...]` or `export const sampleCards = [...]`
-      const m = text.match(
-        /export\s+const\s+(cards|sampleCards)\s*=\s*([\s\S]*?);?\s*$/,
-      );
-      if (!m) {
-        alert(
-          "File found but could not extract `cards` or `sampleCards` export from ai_generated_cards.js",
-        );
-        return;
-      }
-      let fileCards = null;
-      // m[2] contains the RHS expression
-      const rhs = m[2];
-      try {
-        fileCards = JSON.parse(rhs);
-      } catch (e) {
-        // try evaluating as JS expression as a fallback
-        try {
-          // eslint-disable-next-line no-new-func
-          fileCards = new Function(`return (${rhs})`)();
-        } catch (ee) {
-          console.warn("Failed to parse cards export", ee);
-        }
-      }
-      if (!fileCards || !Array.isArray(fileCards) || fileCards.length === 0) {
-        alert("No cards found in src/data/ai_generated_cards.js");
-        return;
-      }
-      handleStart(fileCards, "aiGenerated");
-    } catch (e) {
-      console.warn("Failed to load ai_generated_cards.js", e);
-      alert(
-        "Could not load src/data/ai_generated_cards.js. Make sure the file exists and is exported as `export const cards = [...]`.",
-      );
-    }
   };
 
   const handleStart = (parsedCards, suggestedName) => {
@@ -270,7 +224,6 @@ function App() {
           <StartScreen
             onSelectMethod={handleSelectMethod}
             onAIClick={() => setView("ai")}
-            onLoadAiFile={loadAiGeneratedFile}
           />
         )}
         {view === "text" && <InputScreen onStart={handleStart} />}

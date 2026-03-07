@@ -1,28 +1,26 @@
-import { useState } from 'react'
-import { queryOllama } from './aiService'
+import { useState } from "react";
+import { queryOllama } from "../../services/aiService";
 // load prompt.md so we can include instructions when generating files
-import systemPrompt from './prompt/prompt.md?raw'
+import systemPrompt from "../../prompt/prompt.md?raw";
 
 function Flashcard() {
-  const [response, setResponse] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [abortController, setAbortController] = useState(null)
+  const [loading, setLoading] = useState(false);
+  const [abortController, setAbortController] = useState(null);
 
-  const [notes, setNotes] = useState('')
+  const [notes, setNotes] = useState("");
   // fileName not needed since we no longer auto-download
-  const [generatedContent, setGeneratedContent] = useState('')
+  const [generatedContent, setGeneratedContent] = useState("");
   // fixed model, user-specified
-  const MODEL = 'deepseek-r1:8b';
+  const MODEL = "deepseek-r1:8b";
 
   // we might want to strip the user question section from the system prompt
-  const promptHeader = systemPrompt.split('---')[0] || systemPrompt;
-
+  const promptHeader = systemPrompt.split("---")[0] || systemPrompt;
 
   // query AI using notes and show output; manual conversion
   const handleQueryAI = async () => {
     if (!notes.trim()) return;
     setLoading(true);
-    setGeneratedContent('');
+    setGeneratedContent("");
 
     // allow the user to cancel request
     const controller = new AbortController();
@@ -38,7 +36,7 @@ Create a module that exports a constant named "data" whose value is an object re
 If you cannot convert the notes, return an empty object.
 Notes:
 ${notes}`;
-      console.log('sending instruction to model', instruction);
+      console.log("sending instruction to model", instruction);
 
       // no timeout and use streaming so we see progress
       const result = await queryOllama(instruction, {
@@ -54,75 +52,75 @@ ${notes}`;
         },
       });
       let output = result;
-      if (typeof result === 'object' && result.choices) {
-        output = result.choices.map(c => c.text).join('');
+      if (typeof result === "object" && result.choices) {
+        output = result.choices.map((c) => c.text).join("");
       }
 
       // store output for preview
-      setGeneratedContent(output || '// model produced no text');
+      setGeneratedContent(output || "// model produced no text");
       // no automatic download - user can copy the preview if desired
     } catch (err) {
-      if (err.name === 'AbortError') {
-        setGeneratedContent('// request cancelled (probably manually aborted)');
+      if (err.name === "AbortError") {
+        setGeneratedContent("// request cancelled (probably manually aborted)");
       } else {
-        console.error('file creation error', err);
+        console.error("file creation error", err);
         setGeneratedContent(`// error: ${err.message}`);
       }
     } finally {
       setLoading(false);
       setAbortController(null);
     }
-  }
+  };
 
   return (
     <div>
-
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginTop: '0.5rem' }}>
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", marginTop: "0.5rem" }}>
           User notes to convert to JS file:
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
           />
         </label>
         <div>
           <button onClick={handleQueryAI} disabled={loading}>
-            {loading ? 'Generating...' : 'Run AI'}
+            {loading ? "Generating..." : "Run AI"}
           </button>
           {loading && abortController && (
-            <button onClick={() => abortController.abort()} style={{ marginLeft: '0.5rem' }}>
+            <button
+              onClick={() => abortController.abort()}
+              style={{ marginLeft: "0.5rem" }}>
               Cancel
             </button>
           )}
           <button
             onClick={async () => {
-              console.log('testing model connectivity');
+              console.log("testing model connectivity");
               try {
-                const res = await queryOllama('hello', { model: MODEL });
-                console.log('model test response', res);
-                alert('check console for test response');
+                const res = await queryOllama("hello", { model: MODEL });
+                console.log("model test response", res);
+                alert("check console for test response");
               } catch (e) {
-                console.error('model test failed', e);
-                alert('model test failed (see console)');
+                console.error("model test failed", e);
+                alert("model test failed (see console)");
               }
             }}
-            style={{ marginLeft: '0.5rem' }}
-          >
+            style={{ marginLeft: "0.5rem" }}>
             Test model
           </button>
         </div>
       </div>
 
       {generatedContent && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: "1rem" }}>
           <h3>Preview of generated file</h3>
-          <pre style={{ background: '#f5f5f5', padding: '0.5rem' }}>
+          <pre style={{ background: "#f5f5f5", padding: "0.5rem" }}>
             {generatedContent}
           </pre>
-          {generatedContent.trim() === '// model produced no text' && (
-            <p style={{ color: 'red' }}>
+          {generatedContent.trim() === "// model produced no text" && (
+            <p style={{ color: "red" }}>
               The model returned no output. Check the browser console to see the
               request/response, and make sure the Ollama server has the
               <code>{MODEL}</code> model installed and running. You can also use
@@ -131,9 +129,8 @@ ${notes}`;
           )}
         </div>
       )}
-
     </div>
-  )
+  );
 }
 
-export default Flashcard
+export default Flashcard;

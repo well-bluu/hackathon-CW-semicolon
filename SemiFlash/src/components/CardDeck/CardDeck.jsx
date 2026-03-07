@@ -1,5 +1,5 @@
 import { useState } from "react";
-import FlipCard from "./Flipcard";
+import FlipCard from "../FlipCard/FlipCard";
 import "./CardDeck.css";
 
 function CardDeck({ initialCards, deckName, onComplete }) {

@@ -1,7 +1,7 @@
 import "./AIDemo.css";
 import { useState } from "react";
-import { queryOllama } from "./aiService";
-import promptTemplate from "./prompt/prompt.md?raw";
+import { queryOllama } from "../../services/aiService";
+import promptTemplate from "../../prompt/prompt.md?raw";
 
 function AIDemo({ onGenerate, onBack }) {
   const [input, setInput] = useState("");

@@ -1,7 +1,6 @@
-import { useState } from "react";
 import "./StartScreen.css";
 
-function StartScreen({ onSelectMethod, onAIClick, onLoadAiFile }) {
+function StartScreen({ onSelectMethod, onAIClick }) {
   return (
     <div className="start-screen">
       <div className="start-container">
