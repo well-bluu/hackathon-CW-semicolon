@@ -61,13 +61,27 @@ function MyDecks({ onSelectDeck }) {
     onSelectDeck(deck);
   };
 
-  const handleDeleteDeck = (deck, e) => {
+  const handleDeleteDeck = async (deck, e) => {
     e.stopPropagation();
     const updatedDecks = decks.filter((d) => d.id !== deck.id);
     setDecks(updatedDecks);
-    // Only update localStorage for non-file decks
+
+    // Remove from localStorage
     const localOnly = updatedDecks.filter((d) => d.source !== "file");
     localStorage.setItem("allDecks", JSON.stringify(localOnly));
+
+    // If it's a file-based deck, also delete the file from src/data/
+    if (deck.fileName) {
+      try {
+        await fetch("/api/delete-deck", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: deck.fileName }),
+        });
+      } catch (err) {
+        console.warn("Could not delete deck file:", err);
+      }
+    }
   };
 
   return (
@@ -140,7 +154,7 @@ function MyDecks({ onSelectDeck }) {
 
                 <button
                   className="delete-btn"
-                  onClick={(e) => handleDeleteDeck(deck.id, e)}>
+                  onClick={(e) => handleDeleteDeck(deck, e)}>
                   ✕
                 </button>
               </div>

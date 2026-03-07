@@ -70,6 +70,44 @@ function writeCardsPlugin() {
         }
       });
 
+      // DELETE /api/delete-deck – remove a card file from src/data/
+      server.middlewares.use("/api/delete-deck", (req, res) => {
+        if (req.method !== "POST") {
+          res.statusCode = 405;
+          res.end("Method not allowed");
+          return;
+        }
+        let body = "";
+        req.on("data", (chunk) => (body += chunk));
+        req.on("end", () => {
+          try {
+            const { fileName } = JSON.parse(body);
+            if (!fileName) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: "fileName is required" }));
+              return;
+            }
+            // Sanitize to prevent path traversal
+            const safeName = path.basename(fileName);
+            const filePath = path.join(
+              path.resolve(process.cwd(), "src", "data"),
+              safeName,
+            );
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ ok: true, deleted: safeName }));
+            } else {
+              res.statusCode = 404;
+              res.end(JSON.stringify({ error: "File not found" }));
+            }
+          } catch (e) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: e.message }));
+          }
+        });
+      });
+
       // POST /api/write-cards – write card file to src/data/
       server.middlewares.use("/api/write-cards", (req, res) => {
         if (req.method !== "POST") {
